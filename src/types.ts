@@ -7,6 +7,7 @@ export interface CleanDiffConfig {
   ignoreImportReordering?: boolean
   /** Ignore line break changes */
   ignoreLineBreaks?: boolean
+  ignoreLineWrappingChanges?: boolean
   /** Ignore quote style changes */
   ignoreQuoteChanges?: boolean
   /** Ignore trailing comma changes */
@@ -48,7 +49,7 @@ export interface DiffFile {
 }
 
 export interface FormattingChange {
-  type: 'whitespace' | 'comment' | 'import' | 'linebreak' | 'indent' | 'quote' | 'trailing-comma' | 'semicolon' | 'custom'
+  type: 'whitespace' | 'comment' | 'import' | 'linebreak' | 'indent' | 'quote' | 'trailing-comma' | 'semicolon' | 'line-wrap' | 'custom'
   severity: 'high' | 'medium' | 'low'
   description: string
   lines: number[]
