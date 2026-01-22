@@ -1,7 +1,7 @@
 {
   "name": "z-diff-cleaner",
   "type": "module",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "packageManager": "pnpm@9.15.9",
   "description": "Remove formatting-only changes from git diffs before sending them to LLMs for code review.",
   "author": "zcf0508 <zcf0508@live.com>",
