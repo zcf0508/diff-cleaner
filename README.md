@@ -14,6 +14,7 @@ Remove formatting-only changes from git diffs before sending them to LLMs for co
 - Detect trailing comma changes (non-JSON)
 - Detect optional semicolon changes with ASI safety checks
 - Detect import reordering when the import set is unchanged
+- Detect line-wrapping-only changes when tokens are unchanged
 
 ## Install
 
@@ -40,6 +41,7 @@ const result = cleaner.clean(diffText, {
   ignoreTrailingCommas: true,
   ignoreOptionalSemicolons: true,
   ignoreImportReordering: true,
+  ignoreLineWrappingChanges: true,
 });
 
 const cleanedDiff = cleaner.reconstruct(result.cleaned);
@@ -52,6 +54,7 @@ console.log(cleanedDiff);
 - ignoreCommentChanges: Remove comment-only changes
 - ignoreImportReordering: Remove import reordering when the set is unchanged
 - ignoreLineBreaks: Remove line break changes
+- ignoreLineWrappingChanges: Remove line-wrapping-only changes when tokens are unchanged
 - ignoreQuoteChanges: Remove quote style changes when safe
 - ignoreTrailingCommas: Remove trailing comma changes in non-JSON
 - ignoreOptionalSemicolons: Remove optional semicolons when safe
