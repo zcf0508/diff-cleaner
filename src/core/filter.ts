@@ -90,43 +90,52 @@ export class DiffFilter {
 
         if (linesToFilter.size > 0) {
           const newLines: DiffLine[] = [];
+          const pairs = this.detector.getPairsForHunk(hunk); // We need this method or similar logic
+          const pairMap = new Map<number, number>(); // removeLineNum -> addLineNum
+          const reversePairMap = new Map<number, number>(); // addLineNum -> removeLineNum
+
+          for (const pair of pairs) {
+            if (pair.remove.oldLineNumber !== undefined && pair.add.newLineNumber !== undefined) {
+              pairMap.set(pair.remove.oldLineNumber, pair.add.newLineNumber);
+              reversePairMap.set(pair.add.newLineNumber, pair.remove.oldLineNumber);
+            }
+          }
+
           for (let i = 0; i < hunk.lines.length; i++) {
             const line = hunk.lines[i];
-            if (line.type === 'remove') {
-              const nextLine = hunk.lines[i + 1];
-              const removeLineNumber = line.oldLineNumber;
-              const addLineNumber = nextLine?.newLineNumber;
-              if (
-                nextLine
-                && nextLine.type === 'add'
-                && removeLineNumber !== undefined
-                && addLineNumber !== undefined
-                && oldLinesToFilter.has(removeLineNumber)
-                && newLinesToFilter.has(addLineNumber)
-                && !(lineWrapLineIndexes.has(i) && lineWrapLineIndexes.has(i + 1))
-              ) {
+
+            if (line.type === 'remove' && line.oldLineNumber !== undefined && oldLinesToFilter.has(line.oldLineNumber)) {
+              const matchedAddLineNum = pairMap.get(line.oldLineNumber);
+              if (matchedAddLineNum !== undefined && newLinesToFilter.has(matchedAddLineNum)) {
+                // This remove line has a corresponding add line that is also filtered.
+                // We'll convert the ADD line to context when we encounter it, and skip this remove line.
+                fileHasChanges = true;
+                continue;
+              }
+              // Standalone remove (like a blank line removal that we want to ignore)
+              fileHasChanges = true;
+              continue;
+            }
+
+            if (line.type === 'add' && line.newLineNumber !== undefined && newLinesToFilter.has(line.newLineNumber)) {
+              const matchedRemoveLineNum = reversePairMap.get(line.newLineNumber);
+              if (matchedRemoveLineNum !== undefined && oldLinesToFilter.has(matchedRemoveLineNum)) {
+                // Convert to context using the ADD line's content
                 fileHasChanges = true;
                 newLines.push({
                   type: 'context',
-                  content: nextLine.content,
-                  oldLineNumber: line.oldLineNumber,
-                  newLineNumber: nextLine.newLineNumber,
+                  content: line.content,
+                  oldLineNumber: matchedRemoveLineNum,
+                  newLineNumber: line.newLineNumber,
                 });
-                i++;
                 continue;
               }
+              // Standalone add (like a blank line addition that we want to ignore)
+              fileHasChanges = true;
+              continue;
             }
 
             if (lineWrapLineIndexes.has(i)) {
-              fileHasChanges = true;
-              continue;
-            }
-
-            if (line.type === 'remove' && line.oldLineNumber !== undefined && oldLinesToFilter.has(line.oldLineNumber)) {
-              fileHasChanges = true;
-              continue;
-            }
-            if (line.type === 'add' && line.newLineNumber !== undefined && newLinesToFilter.has(line.newLineNumber)) {
               fileHasChanges = true;
               continue;
             }

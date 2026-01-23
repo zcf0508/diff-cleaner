@@ -1,10 +1,20 @@
-export function tokenizeForLineWrap(text: string): string[] | null {
+export function tokenizeForLineWrap(text: string, keepWhitespace = false): string[] | null {
   const tokens: string[] = [];
   let i = 0;
   while (i < text.length) {
     const char = text[i];
     if (/\s/.test(char)) {
-      i += 1;
+      if (keepWhitespace) {
+        let j = i + 1;
+        while (j < text.length && /\s/.test(text[j])) {
+          j += 1;
+        }
+        tokens.push(text.slice(i, j));
+        i = j;
+      }
+      else {
+        i += 1;
+      }
       continue;
     }
     if (char === '`') {

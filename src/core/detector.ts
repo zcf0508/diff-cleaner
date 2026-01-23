@@ -1,4 +1,5 @@
 import type { CleanDiffConfig, DiffHunk, FormattingChange } from '../types';
+import type { ChangePair } from './utils/change-pair';
 import { detectTrailingCommaChanges } from './detectors/comma-detector';
 import { detectCommentChanges } from './detectors/comment-detector';
 import { detectImportReordering } from './detectors/import-detector';
@@ -11,7 +12,7 @@ import { findChangePairs } from './utils/change-pair';
 export class FormatDetector {
   detect(hunk: DiffHunk, config: CleanDiffConfig, filePath?: string): FormattingChange[] {
     const changes: FormattingChange[] = [];
-    const pairs = findChangePairs(hunk.lines);
+    const pairs = this.getPairsForHunk(hunk);
 
     if (config.ignoreWhitespace) {
       const whitespaceChanges = detectWhitespaceChanges(hunk, pairs);
@@ -105,5 +106,9 @@ export class FormatDetector {
     }
 
     return changes;
+  }
+
+  getPairsForHunk(hunk: DiffHunk): ChangePair[] {
+    return findChangePairs(hunk.lines);
   }
 }

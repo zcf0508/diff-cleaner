@@ -9,15 +9,34 @@ export interface ChangePair {
 
 export function findChangePairs(lines: DiffLine[]): ChangePair[] {
   const pairs: ChangePair[] = [];
-  for (let i = 0; i < lines.length - 1; i++) {
-    const current = lines[i];
-    const next = lines[i + 1];
-    if (current.type === 'remove' && next.type === 'add') {
+  let i = 0;
+  while (i < lines.length) {
+    if (lines[i].type === 'context') {
+      i++;
+      continue;
+    }
+
+    const removed: { line: DiffLine, index: number }[] = [];
+    const added: { line: DiffLine, index: number }[] = [];
+
+    while (i < lines.length && lines[i].type !== 'context') {
+      if (lines[i].type === 'remove') {
+        removed.push({ line: lines[i], index: i });
+      }
+      else if (lines[i].type === 'add') {
+        added.push({ line: lines[i], index: i });
+      }
+      i++;
+    }
+
+    // Pair by order in the block
+    const count = Math.min(removed.length, added.length);
+    for (let j = 0; j < count; j++) {
       pairs.push({
-        remove: current,
-        add: next,
-        removeIndex: i,
-        addIndex: i + 1,
+        remove: removed[j].line,
+        add: added[j].line,
+        removeIndex: removed[j].index,
+        addIndex: added[j].index,
       });
     }
   }

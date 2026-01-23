@@ -9,18 +9,25 @@ export class DiffReconstructor {
     const output: string[] = [];
 
     for (const file of files) {
-      if (file.hunks.length === 0) { continue; }
-
-      output.push(this.generateFileHeader(file));
+      const fileHunks: string[] = [];
 
       for (const hunk of file.hunks) {
+        // Only keep lines that are NOT contextual or represent a real change
+        const hasChange = hunk.lines.some(l => l.type !== 'context');
+        if (!hasChange) { continue; }
+
         const hunkContent = this.generateHunkContent(hunk);
         if (hunkContent.length === 0) { continue; }
 
         // Recalculate hunk header
         const recalculatedHeader = this.recalculateHunkHeader(hunk);
-        output.push(recalculatedHeader);
-        output.push(...hunkContent);
+        fileHunks.push(recalculatedHeader);
+        fileHunks.push(...hunkContent);
+      }
+
+      if (fileHunks.length > 0) {
+        output.push(this.generateFileHeader(file));
+        output.push(...fileHunks);
       }
     }
 
