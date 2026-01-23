@@ -126,6 +126,34 @@ describe('DiffCleaner: End-to-End', () => {
     `);
   });
 
+  it('should keep meaningful changes in a mixed diff with line-wrapping', () => {
+    const rawDiff = `diff --git a/test.ts b/test.ts
+--- a/test.ts
++++ b/test.ts
+@@ -1,5 +1,7 @@
+-const config = defineConfig({ test: 'a' });
++const config = defineConfig(
++  { test: 'a' },
++);
+ const untouched = true;
+-const value = 1;
++const value = 2;`;
+
+    const result = cleaner.clean(rawDiff, { ignoreLineWrappingChanges: true });
+    const reconstructed = cleaner.reconstruct(result.cleaned);
+
+    expect(result.formatChanges.some(c => c.type === 'line-wrap')).toBe(true);
+    expect(reconstructed).toMatchInlineSnapshot(`
+      "diff --git a/test.ts b/test.ts
+      --- a/test.ts
+      +++ b/test.ts
+      @@ -1,2 +1,2 @@
+       const untouched = true;
+      -const value = 1;
+      +const value = 2;"
+    `);
+  });
+
   describe('Negative & Edge Cases', () => {
     it('should keep line-wrapping changes when template literals are involved', () => {
       const rawDiff = `diff --git a/test.ts b/test.ts
