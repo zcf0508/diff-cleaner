@@ -155,7 +155,7 @@ describe('DiffCleaner: End-to-End', () => {
   });
 
   describe('Negative & Edge Cases', () => {
-    it('should keep line-wrapping changes when template literals are involved', () => {
+    it('should clean line-wrapping changes when template literals are involved', () => {
       const rawDiff = `diff --git a/test.ts b/test.ts
 --- a/test.ts
 +++ b/test.ts
@@ -168,17 +168,8 @@ describe('DiffCleaner: End-to-End', () => {
       const result = cleaner.clean(rawDiff, { ignoreLineWrappingChanges: true });
       const reconstructed = cleaner.reconstruct(result.cleaned);
 
-      expect(result.formatChanges.length).toBe(0);
-      expect(reconstructed).toMatchInlineSnapshot(`
-        "diff --git a/test.ts b/test.ts
-        --- a/test.ts
-        +++ b/test.ts
-        @@ -1,1 +1,3 @@
-        -const config = defineConfig({ test: \`a \${name}\` });
-        +const config = defineConfig(
-        +  { test: \`a \${name}\` },
-        +);"
-      `);
+      expect(result.formatChanges.some(c => c.type === 'line-wrap')).toBe(true);
+      expect(reconstructed.trim()).toBe('');
     });
     it('should NOT clean quote changes when interpolation is involved', () => {
       const rawDiff = `diff --git a/test.ts b/test.ts
@@ -299,6 +290,29 @@ describe('DiffCleaner: End-to-End', () => {
 
       expect(result.formatChanges.some(c => c.type === 'import')).toBe(true);
       expect(reconstructed.trim()).toBe('');
+    });
+    it('should NOT clean line-wrapping changes when template literals content changed', () => {
+      const rawDiff = `diff --git a/test.ts b/test.ts
+--- a/test.ts
++++ b/test.ts
+@@ -1,1 +1,3 @@
+-const s = \`hello \${name}\`;
++const s = \`hello 
++  \${other}\`;`;
+
+      const result = cleaner.clean(rawDiff, { ignoreLineWrappingChanges: true });
+      const reconstructed = cleaner.reconstruct(result.cleaned);
+
+      expect(result.formatChanges.length).toBe(0);
+      expect(reconstructed).toMatchInlineSnapshot(`
+        "diff --git a/test.ts b/test.ts
+        --- a/test.ts
+        +++ b/test.ts
+        @@ -1,1 +1,2 @@
+        -const s = \`hello \${name}\`;
+        +const s = \`hello 
+        +  \${other}\`;"
+      `);
     });
   });
 });

@@ -8,7 +8,29 @@ export function tokenizeForLineWrap(text: string): string[] | null {
       continue;
     }
     if (char === '`') {
-      return null;
+      let j = i + 1;
+      let escaped = false;
+      for (; j < text.length; j += 1) {
+        const current = text[j];
+        if (escaped) {
+          escaped = false;
+          continue;
+        }
+        if (current === '\\') {
+          escaped = true;
+          continue;
+        }
+        if (current === '`') {
+          j += 1;
+          break;
+        }
+      }
+      if (j > text.length) {
+        return null;
+      }
+      tokens.push(text.slice(i, j));
+      i = j;
+      continue;
     }
     if (char === '\'' || char === '"') {
       const quote = char;
