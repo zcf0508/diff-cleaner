@@ -47,6 +47,18 @@ describe('Comprehensive Formatting Tests: Whitespace, Comments, and Pairing', ()
       expect(result.formatChanges.some(c => c.type === 'whitespace')).toBe(true);
       expect(cleaner.reconstruct(result.cleaned).trim()).toBe('');
     });
+
+    it('POSITIVE: should ignore whitespace changes around arrow functions (=>)', () => {
+      const rawDiff = `diff --git a/test.ts b/test.ts
+--- a/test.ts
++++ b/test.ts
+@@ -1,1 +1,1 @@
+-this.$nextTick(()=> {
++this.$nextTick(() => {`;
+      const result = cleaner.clean(rawDiff, { ignoreWhitespace: true });
+      expect(result.formatChanges.some(c => c.type === 'whitespace')).toBe(true);
+      expect(cleaner.reconstruct(result.cleaned).trim()).toBe('');
+    });
   });
 
   describe('Comment Detector (Positive & Negative)', () => {

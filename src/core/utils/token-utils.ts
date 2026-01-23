@@ -111,6 +111,46 @@ export function tokenizeForLineWrap(text: string, keepWhitespace = false): strin
       i = j;
       continue;
     }
+
+    // Multi-character operators
+    if (char === '=' && text[i + 1] === '>') {
+      tokens.push('=>');
+      i += 2;
+      continue;
+    }
+    if (char === '=' && text[i + 1] === '=') {
+      if (text[i + 2] === '=') {
+        tokens.push('===');
+        i += 3;
+      }
+      else {
+        tokens.push('==');
+        i += 2;
+      }
+      continue;
+    }
+    if (char === '!' && text[i + 1] === '=') {
+      if (text[i + 2] === '=') {
+        tokens.push('!==');
+        i += 3;
+      }
+      else {
+        tokens.push('!=');
+        i += 2;
+      }
+      continue;
+    }
+    if (char === '&' && text[i + 1] === '&') {
+      tokens.push('&&');
+      i += 2;
+      continue;
+    }
+    if (char === '|' && text[i + 1] === '|') {
+      tokens.push('||');
+      i += 2;
+      continue;
+    }
+
     tokens.push(char);
     i += 1;
   }
