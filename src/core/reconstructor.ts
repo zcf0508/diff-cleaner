@@ -14,13 +14,20 @@ export class DiffReconstructor {
       for (const hunk of file.hunks) {
         // Only keep lines that are NOT contextual or represent a real change
         const hasChange = hunk.lines.some(l => l.type !== 'context');
-        if (!hasChange) { continue; }
 
         const hunkContent = this.generateHunkContent(hunk);
         if (hunkContent.length === 0) { continue; }
 
         // Recalculate hunk header
         const recalculatedHeader = this.recalculateHunkHeader(hunk);
+
+        if (!hasChange) {
+          // If no change, we still keep the file header but this hunk is essentially context now.
+          // In standard diff, we might skip the hunk entirely.
+          // But our goal is to show clean diff, so we skip it.
+          continue;
+        }
+
         fileHunks.push(recalculatedHeader);
         fileHunks.push(...hunkContent);
       }
@@ -31,7 +38,21 @@ export class DiffReconstructor {
       }
     }
 
-    return output.join('\n');
+    const result = output.join('\n');
+    return result
+      ? `${result}\n`
+      : '';
+  }
+
+  private generateHunkContent(hunk: DiffHunk): string[] {
+    return hunk.lines.map((line) => {
+      const prefix = line.type === 'add'
+        ? '+'
+        : line.type === 'remove'
+          ? '-'
+          : ' ';
+      return `${prefix}${line.content}`;
+    });
   }
 
   private generateFileHeader(file: DiffFile): string {
@@ -86,16 +107,5 @@ export class DiffReconstructor {
     }
 
     return `@@ -${hunk.oldStart},${oldLines} +${hunk.newStart},${newLines} @@`;
-  }
-
-  private generateHunkContent(hunk: DiffHunk): string[] {
-    return hunk.lines.map((line) => {
-      const prefix = line.type === 'add'
-        ? '+'
-        : line.type === 'remove'
-          ? '-'
-          : ' ';
-      return `${prefix}${line.content}`;
-    });
   }
 }

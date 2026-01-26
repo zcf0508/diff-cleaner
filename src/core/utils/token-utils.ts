@@ -185,6 +185,21 @@ export function isTokenSequenceEqual(left: string[], right: string[]): boolean {
   return true;
 }
 
+export function isCommentToken(token: string): boolean {
+  return token.startsWith('//') || (token.startsWith('/*') && token.endsWith('*/'));
+}
+
+export function isWhitespaceToken(token: string): boolean {
+  return /^\s+$/.test(token);
+}
+
+/**
+ * Checks if a token is "significant" for code logic (i.e., not whitespace and not a comment).
+ */
+export function isSignificantToken(token: string): boolean {
+  return !isWhitespaceToken(token) && !isCommentToken(token);
+}
+
 export function buildMultiset(values: string[]): Map<string, number> {
   const map = new Map<string, number>();
   for (const value of values) {

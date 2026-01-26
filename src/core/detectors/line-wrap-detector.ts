@@ -1,14 +1,14 @@
 import type { DiffHunk, DiffLine } from '../../types';
-import { addLineNumber } from '../utils/change-pair';
 import { isLineWrapSupportedFile } from '../utils/file-type-utils';
 import { isTokenSequenceEqual, normalizeLineWrapTokens, tokenizeForLineWrap } from '../utils/token-utils';
 
-export function detectLineWrapChanges(hunk: DiffHunk, filePath?: string): number[] {
+export function detectLineWrapChanges(hunk: DiffHunk, filePath?: string): { oldLines: number[], newLines: number[] } {
   if (!filePath || !isLineWrapSupportedFile(filePath)) {
-    return [];
+    return { oldLines: [], newLines: [] };
   }
 
-  const affectedLines = new Set<number>();
+  const oldLines = new Set<number>();
+  const newLines = new Set<number>();
   let blockLines: DiffLine[] = [];
 
   const flushBlock = (): void => {
@@ -36,7 +36,8 @@ export function detectLineWrapChanges(hunk: DiffHunk, filePath?: string): number
 
     if (isTokenSequenceEqual(removedTokens, addedTokens)) {
       for (const line of blockLines) {
-        addLineNumber(affectedLines, line);
+        if (line.type === 'remove' && line.oldLineNumber !== undefined) { oldLines.add(line.oldLineNumber); }
+        if (line.type === 'add' && line.newLineNumber !== undefined) { newLines.add(line.newLineNumber); }
       }
     }
 
@@ -53,5 +54,8 @@ export function detectLineWrapChanges(hunk: DiffHunk, filePath?: string): number
   }
   flushBlock();
 
-  return [...affectedLines];
+  return {
+    oldLines: [...oldLines],
+    newLines: [...newLines],
+  };
 }

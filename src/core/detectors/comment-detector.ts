@@ -1,13 +1,8 @@
 import type { DiffHunk } from '../../types';
 import type { ChangePair } from '../utils/change-pair';
-import { addLineNumber } from '../utils/change-pair';
 import { isCommentLine } from '../utils/file-type-utils';
 
-import { tokenizeForLineWrap } from '../utils/token-utils';
-
-function isCommentToken(token: string): boolean {
-  return token.startsWith('//') || (token.startsWith('/*') && token.endsWith('*/'));
-}
+import { isSignificantToken, tokenizeForLineWrap } from '../utils/token-utils';
 
 function isCommentOnlyChange(oldStr: string, newStr: string): boolean {
   const oldTokens = tokenizeForLineWrap(oldStr, true);
@@ -19,9 +14,9 @@ function isCommentOnlyChange(oldStr: string, newStr: string): boolean {
     return isCommentLine(oldTrim) && isCommentLine(newTrim) && oldTrim !== newTrim;
   }
 
-  // Filter out comment tokens AND whitespace tokens for code comparison
-  const oldCodeTokens = oldTokens.filter(t => !isCommentToken(t) && !/^\s+$/.test(t));
-  const newCodeTokens = newTokens.filter(t => !isCommentToken(t) && !/^\s+$/.test(t));
+  // Filter out non-significant tokens (comments and whitespace) for code comparison
+  const oldCodeTokens = oldTokens.filter(isSignificantToken);
+  const newCodeTokens = newTokens.filter(isSignificantToken);
 
   if (oldCodeTokens.length !== newCodeTokens.length) {
     return false;
@@ -37,21 +32,26 @@ function isCommentOnlyChange(oldStr: string, newStr: string): boolean {
   return oldStr !== newStr;
 }
 
-export function detectCommentChanges(hunk: DiffHunk, pairs: ChangePair[]): number[] {
-  const affectedLines = new Set<number>();
+export function detectCommentChanges(hunk: DiffHunk, pairs: ChangePair[]): { oldLines: number[], newLines: number[] } {
+  const oldLines = new Set<number>();
+  const newLines = new Set<number>();
 
   for (const pair of pairs) {
     if (isCommentOnlyChange(pair.remove.content, pair.add.content)) {
-      addLineNumber(affectedLines, pair.remove);
-      addLineNumber(affectedLines, pair.add);
+      if (pair.remove.oldLineNumber !== undefined) { oldLines.add(pair.remove.oldLineNumber); }
+      if (pair.add.newLineNumber !== undefined) { newLines.add(pair.add.newLineNumber); }
     }
   }
 
   for (const line of hunk.lines) {
     if (line.type !== 'context' && isCommentLine(line.content)) {
-      addLineNumber(affectedLines, line);
+      if (line.type === 'remove' && line.oldLineNumber !== undefined) { oldLines.add(line.oldLineNumber); }
+      if (line.type === 'add' && line.newLineNumber !== undefined) { newLines.add(line.newLineNumber); }
     }
   }
 
-  return [...affectedLines];
+  return {
+    oldLines: [...oldLines],
+    newLines: [...newLines],
+  };
 }

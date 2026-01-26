@@ -147,7 +147,10 @@ describe('DiffCleaner: End-to-End', () => {
       "diff --git a/test.ts b/test.ts
       --- a/test.ts
       +++ b/test.ts
-      @@ -1,2 +1,2 @@
+      @@ -1,5 +1,5 @@
+       const config = defineConfig(
+         { test: 'a' },
+       );
        const untouched = true;
       -const value = 1;
       +const value = 2;"

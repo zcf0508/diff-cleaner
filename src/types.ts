@@ -52,7 +52,9 @@ export interface FormattingChange {
   type: 'whitespace' | 'comment' | 'import' | 'linebreak' | 'indent' | 'quote' | 'trailing-comma' | 'semicolon' | 'line-wrap' | 'custom'
   severity: 'high' | 'medium' | 'low'
   description: string
-  lines: number[]
+  lines: number[] // For backward compatibility if needed, but we should prefer oldLines/newLines
+  oldLines?: number[]
+  newLines?: number[]
   filePath?: string
 }
 

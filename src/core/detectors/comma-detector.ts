@@ -1,5 +1,4 @@
 import type { ChangePair } from '../utils/change-pair';
-import { addLineNumber } from '../utils/change-pair';
 
 function isTrailingCommaOnlyChange(oldStr: string, newStr: string): boolean {
   const oldTrim = oldStr.trim();
@@ -26,15 +25,19 @@ function isTrailingCommaOnlyChange(oldStr: string, newStr: string): boolean {
   return oldWithoutComma === newWithoutComma && oldTrim !== newTrim;
 }
 
-export function detectTrailingCommaChanges(pairs: ChangePair[]): number[] {
-  const affectedLines = new Set<number>();
+export function detectTrailingCommaChanges(pairs: ChangePair[]): { oldLines: number[], newLines: number[] } {
+  const oldLines = new Set<number>();
+  const newLines = new Set<number>();
 
   for (const pair of pairs) {
     if (isTrailingCommaOnlyChange(pair.remove.content, pair.add.content)) {
-      addLineNumber(affectedLines, pair.remove);
-      addLineNumber(affectedLines, pair.add);
+      if (pair.remove.oldLineNumber !== undefined) { oldLines.add(pair.remove.oldLineNumber); }
+      if (pair.add.newLineNumber !== undefined) { newLines.add(pair.add.newLineNumber); }
     }
   }
 
-  return [...affectedLines];
+  return {
+    oldLines: [...oldLines],
+    newLines: [...newLines],
+  };
 }

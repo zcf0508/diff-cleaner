@@ -1,6 +1,5 @@
 import type { DiffHunk, DiffLine } from '../../types';
 import type { ChangePair } from '../utils/change-pair';
-import { addLineNumber } from '../utils/change-pair';
 
 function isSemicolonOnlyChange(oldStr: string, newStr: string, nextLine?: DiffLine): boolean {
   const oldTrim = oldStr.trim();
@@ -25,15 +24,19 @@ function isSemicolonOnlyChange(oldStr: string, newStr: string, nextLine?: DiffLi
   return true;
 }
 
-export function detectSemicolonChanges(hunk: DiffHunk, pairs: ChangePair[]): number[] {
-  const affectedLines = new Set<number>();
+export function detectSemicolonChanges(hunk: DiffHunk, pairs: ChangePair[]): { oldLines: number[], newLines: number[] } {
+  const oldLines = new Set<number>();
+  const newLines = new Set<number>();
 
   for (const pair of pairs) {
     if (isSemicolonOnlyChange(pair.remove.content, pair.add.content, hunk.lines[pair.addIndex + 1])) {
-      addLineNumber(affectedLines, pair.remove);
-      addLineNumber(affectedLines, pair.add);
+      if (pair.remove.oldLineNumber !== undefined) { oldLines.add(pair.remove.oldLineNumber); }
+      if (pair.add.newLineNumber !== undefined) { newLines.add(pair.add.newLineNumber); }
     }
   }
 
-  return [...affectedLines];
+  return {
+    oldLines: [...oldLines],
+    newLines: [...newLines],
+  };
 }
