@@ -66,8 +66,7 @@ describe('Import Reordering Validation', () => {
         @@ -1,2 +1,2 @@
         -import { A } from './a';
         +import { A, A2 } from './a';
-         import { B } from './b';
-        "
+         import { B } from './b';"
       `);
     });
 
@@ -88,8 +87,7 @@ describe('Import Reordering Validation', () => {
         +++ b/test.ts
         @@ -1,1 +1,2 @@
          import { A } from './a';
-        +import { B } from './b';
-        "
+        +import { B } from './b';"
       `);
     });
 
@@ -110,8 +108,7 @@ describe('Import Reordering Validation', () => {
         +++ b/test.ts
         @@ -1,2 +1,1 @@
          import { A } from './a';
-        -import { B } from './b';
-        "
+        -import { B } from './b';"
       `);
     });
 
@@ -140,8 +137,7 @@ describe('Import Reordering Validation', () => {
         -import { C } from './c';
          import { B } from './b';
          import { A } from './a';
-        +import { D } from './d';
-        "
+        +import { D } from './d';"
       `);
     });
   });

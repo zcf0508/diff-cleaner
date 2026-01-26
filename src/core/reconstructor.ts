@@ -39,9 +39,7 @@ export class DiffReconstructor {
     }
 
     const result = output.join('\n');
-    return result
-      ? `${result}\n`
-      : '';
+    return result;
   }
 
   private generateHunkContent(hunk: DiffHunk): string[] {
